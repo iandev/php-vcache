@@ -1,7 +1,7 @@
 php-vcache
 ==========
 
-PHP caching tool for generating flat view files.  Serve static files as much as possible.
+Generic light weight PHP caching tool for generating flat view files.  For generating and serving cached static HTML documents.  Perfect for high traffic blogging sites or for websites where its sometimes ok to serve stale content.
 
 ## Usage:
 
