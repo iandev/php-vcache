@@ -170,6 +170,21 @@ class FileRepository implements IResourceRepository {
     }
 }
 
+class GzipFileRepository extends FileRepository {
+    function __construct($dir) {
+        parent::__construct($dir);
+    }
+
+    function create($key, $value) {
+        if(function_exists("gzencode")) {
+            $value = gzencode($value);
+        } else {
+            throw new \Exception("Cannot gzip because gzencode is not available.");
+        }
+        parent::create($key, $value);
+    }
+}
+
 class Cache implements ICache {
 
     private $repository;
@@ -248,20 +263,44 @@ class BufferedCache extends Cache implements IBuffer {
 
     public function bufferGet($key) {
         $this->buffer = ob_get_contents();
+        $this->bufferEnd();
         $this->set($key, $this->buffer);
         return $this->get($key);
-    }
-
-    public function bufferGetEnd($key) {
-        $out = $this->bufferGet($key);
-        $this->bufferEnd();
-        return $out;
     }
 
     public function capture($key, $callback) {
         $this->bufferStart();
         $callback();
         return $this->bufferGetEnd($key);
+    }
+}
+
+class GzipBufferedCache extends BufferedCache {
+    function __construct(array $cache_policy, FileRepository $resource_repository) {
+        parent::__construct($cache_policy, $resource_repository);
+    }
+
+    public function get($key) {
+        $out = parent::get($key);
+
+        $accept = explode(",", $_SERVER["HTTP_ACCEPT_ENCODING"]);
+        if(in_array("gzip", $accept)) {
+            if($out != null) {
+                header('Content-Encoding: gzip');
+                header('content-type: text/html; charset: UTF-8');
+                header('Content-Length: ' . strlen($out));
+                header('Vary: Accept-Encoding');
+            }
+        } else {
+            if(function_exists("gzdecode"))
+                $out = gzdecode($out);
+            else if(function_exists("gzinflate"))
+                $out = gzinflate(substr($out,10,-8));
+            else
+                throw new \Exception("Browser does not support gzip compression and cannot successfully decode/inflate ouput because neither gzdecode or gzinflate are available.");
+        }
+
+        return $out;
     }
 }
 
