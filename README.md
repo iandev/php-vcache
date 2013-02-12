@@ -8,10 +8,11 @@ Generic light weight PHP caching tool for generating flat view files.  For gener
 ```php
 include "cache.php";
 
-use \ViewCache\FileExpirationCachePolicy as CachePolicy1;
 use \ViewCache\FileRepository as Repository;
 use \ViewCache\BufferedCache as Cache;
+use \ViewCache\FileExpirationCachePolicy as CachePolicy1;
 use \ViewCache\HttpMethodCachePolicy as CachePolicy2;
+use \ViewCache\UriRegexCachePolicy as CachePolicy3;
 
 $key = $_SERVER["REQUEST_URI"];
 $expiration_seconds = 30;
@@ -21,7 +22,8 @@ $repository = new Repository($cache_dir);
 $cache = new Cache(
   array(
     new CachePolicy1($repository, $expiration_seconds), 
-    new CachePolicy2(array("GET"=>array("allowed"=>true)))
+    new CachePolicy2(array("GET"=>array("allowed"=>true))),
+    new CachePolicy3("/p=1/")
   ), 
   $repository
 );
