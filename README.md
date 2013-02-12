@@ -26,18 +26,18 @@ $cache = new Cache(
   $repository
 );
 
-$page_content = $cache->get($key);
-if($page_content == null) {
+$page_contents = $cache->get($key);
+if($page_contents == null) {
   $cache->bufferStart();
   
   /*
     your PHP application starting point here
   */
   
-  $page_content = $cache->bufferGetEnd($key);
+  $page_contents = $cache->bufferGetEnd($key);
 }
 
-echo $page_content;
+echo $page_contents;
 ```
 
 ## The MIT License (MIT)
