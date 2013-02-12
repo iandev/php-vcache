@@ -12,12 +12,14 @@ interface IResourceRepository {
     function read($key);
     function update($key, $value);
     function delete($key);
-    function get_path($file);
+    function deleteAll();
+    function getPath($file);
 }
 
 interface ICache {
     function set($key, $value);
     function get($key);
+    function flush();
 }
 
 interface IBuffer {
@@ -109,7 +111,7 @@ class FileRepository implements IResourceRepository {
         }
     }
 
-    function get_path($filename) {
+    function getPath($filename) {
         $this->last_path = $this->repo_dir."/".$this->hash_key($filename);
         return $this->last_path;
     }
@@ -123,20 +125,20 @@ class FileRepository implements IResourceRepository {
     }
 
     function exists($key) {
-        if(file_exists($this->get_path($key)))
+        if(file_exists($this->getPath($key)))
             return true;
 
         return false;
     }
 
     function create($key, $value) {
-        $fp = fopen($this->get_path($key), 'w');
+        $fp = fopen($this->getPath($key), 'w');
         fwrite($fp, $value);
         fclose($fp);
     }
 
     function read($key) {
-        $path = $this->get_path($key);
+        $path = $this->getPath($key);
         if(file_exists($path)) {
             $fp = fopen($path, 'r');
             $value = fread($fp, filesize($path));
@@ -151,9 +153,19 @@ class FileRepository implements IResourceRepository {
     }
 
     function delete($key) {
-        $path = $this->get_path($key);
+        $path = $this->getPath($key);
         if(strlen($key) > 0 && file_exists($path)) {
             unlink($path);
+        }
+    }
+    
+    function deleteAll() {
+        $files = scandir($this->repo_dir);
+        $files = array_diff($files, array(".",".."));
+        foreach($files as $file) {
+            if(strlen($file) > 0) {
+                unlink($this->repo_dir."/".$file);
+            }
         }
     }
 }
@@ -212,6 +224,11 @@ class Cache implements ICache {
         else
             $this->repository->create($key, $value);
     }
+    
+    public function flush() {
+        $this->repository->deleteAll();
+        $this->flushed = true;
+    }
 }
 
 class BufferedCache extends Cache implements IBuffer {
@@ -232,12 +249,13 @@ class BufferedCache extends Cache implements IBuffer {
     public function bufferGet($key) {
         $this->buffer = ob_get_contents();
         $this->set($key, $this->buffer);
+        return $this->get($key);
     }
 
     public function bufferGetEnd($key) {
-        $this->bufferGet($key);
+        $out = $this->bufferGet($key);
         $this->bufferEnd();
-        return $this->get($key);
+        return $out;
     }
 
     public function capture($key, $callback) {
