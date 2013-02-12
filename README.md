@@ -12,7 +12,6 @@ include "cache.php";
 
 //for gzip support, change this to GzipFileRepository
 use \ViewCache\FileRepository as Repository;
-//for gzip support, change this to GzipBufferedCache
 use \ViewCache\BufferedCache as Cache;
 use \ViewCache\FileExpirationCachePolicy as CachePolicy1;
 use \ViewCache\HttpMethodCachePolicy as CachePolicy2;
