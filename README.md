@@ -5,7 +5,7 @@ Generic light weight PHP caching tool for generating flat view files. For genera
 
 ## Usage:
 
-Place this in your index.php or wherever your application root is.  This was tested with wordpress by entering this code in the index.php file and substituting the commented section below (/*your PHP application starting point here*/) with the original wordpres index.php code.
+Place this in your index.php or wherever your application root is.  This was tested with wordpress by entering this code in the index.php file and substituting the commented section below (/*your PHP application starting point here*/) with the original wordpress index.php code.
 
 ```php
 include "cache.php";
