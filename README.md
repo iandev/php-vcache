@@ -21,9 +21,12 @@ $cache_dir = "cachedir";
 $repository = new Repository($cache_dir);
 $cache = new Cache(
   array(
+    //cache pages for specific amount of seconds
     new CachePolicy1($repository, $expiration_seconds), 
+    //only cache pages using certain http method calls
     new CachePolicy2(array("GET"=>array("allowed"=>true))),
-    new CachePolicy3("/p=1/")
+    //only cache pages that match the request uri
+    new CachePolicy3(array("/p=1/", "/p=2/"))
   ), 
   $repository
 );
