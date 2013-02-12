@@ -190,11 +190,11 @@ class GzipFileRepository extends CompressedFileRepository {
         else if(function_exists("gzinflate"))
             $value = gzinflate(substr($out,10,-8));
         else
-            throw new \Exception("No decompression functionality available.");
+            throw new \Exception("Browser does not support gzip compression and cannot successfully decode/inflate ouput because neither gzdecode or gzinflate are available.");
 
         return $value;
     }
-    
+
     function create($key, $value) {
         if(function_exists("gzencode")) {
             $value = $this->compress($value);
@@ -202,6 +202,24 @@ class GzipFileRepository extends CompressedFileRepository {
             throw new \Exception("Cannot gzip because gzencode is not available.");
         }
         parent::create($key, $value);
+    }
+
+    function read($key) {
+        $value = parent::read($key);
+
+        $accept = explode(",", $_SERVER["HTTP_ACCEPT_ENCODING"]);
+        if(in_array("gzip", $accept)) {
+            if($value != null) {
+                header('Content-Encoding: gzip');
+                header('content-type: text/html; charset: UTF-8');
+                header('Content-Length: ' . strlen($value));
+                header('Vary: Accept-Encoding');
+            }
+        } else {
+            $value = $this->decompress($value);
+        }
+
+        return $value;
     }
 }
 
@@ -292,35 +310,6 @@ class BufferedCache extends Cache implements IBuffer {
         $this->bufferStart();
         $callback();
         return $this->bufferGetEnd($key);
-    }
-}
-
-class GzipBufferedCache extends BufferedCache {
-    function __construct(array $cache_policy, CompressedFileRepository $resource_repository) {
-        parent::__construct($cache_policy, $resource_repository);
-    }
-
-    public function get($key) {
-        $out = parent::get($key);
-
-        $accept = explode(",", $_SERVER["HTTP_ACCEPT_ENCODING"]);
-        if(in_array("gzip", $accept)) {
-            if($out != null) {
-                header('Content-Encoding: gzip');
-                header('content-type: text/html; charset: UTF-8');
-                header('Content-Length: ' . strlen($out));
-                header('Vary: Accept-Encoding');
-            }
-        } else {
-            if(function_exists("gzdecode"))
-                $out = gzdecode($out);
-            else if(function_exists("gzinflate"))
-                $out = gzinflate(substr($out,10,-8));
-            else
-                throw new \Exception("Browser does not support gzip compression and cannot successfully decode/inflate ouput because neither gzdecode or gzinflate are available.");
-        }
-
-        return $out;
     }
 }
 
