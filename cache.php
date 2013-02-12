@@ -170,14 +170,34 @@ class FileRepository implements IResourceRepository {
     }
 }
 
-class GzipFileRepository extends FileRepository {
+abstract class CompressedFileRepository extends FileRepository {
+    abstract function compress($value);
+    abstract function decompress($value);
+}
+
+class GzipFileRepository extends CompressedFileRepository {
     function __construct($dir) {
         parent::__construct($dir);
     }
+    
+    function compress($value) {
+        return gzencode($value);
+    }
 
+    function decompress($value) {
+        if(function_exists("gzdecode"))
+            $value = gzdecode($out);
+        else if(function_exists("gzinflate"))
+            $value = gzinflate(substr($out,10,-8));
+        else
+            throw new \Exception("No decompression functionality available.");
+
+        return $value;
+    }
+    
     function create($key, $value) {
         if(function_exists("gzencode")) {
-            $value = gzencode($value);
+            $value = $this->compress($value);
         } else {
             throw new \Exception("Cannot gzip because gzencode is not available.");
         }
@@ -276,7 +296,7 @@ class BufferedCache extends Cache implements IBuffer {
 }
 
 class GzipBufferedCache extends BufferedCache {
-    function __construct(array $cache_policy, FileRepository $resource_repository) {
+    function __construct(array $cache_policy, CompressedFileRepository $resource_repository) {
         parent::__construct($cache_policy, $resource_repository);
     }
 
