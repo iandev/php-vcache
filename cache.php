@@ -80,6 +80,12 @@ class UriRegexCachePolicy implements ICachePolicy {
     }
 
     public function check() {
+        if(!is_array($this->config)) {
+            $tmp = $this->config;
+            $this->config = array();
+            array_push($this->config, $tmp);
+        }
+        
         foreach($this->config as $conf) {
             if(preg_match($conf, $_SERVER["REQUEST_URI"]))
                 return true;
