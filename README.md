@@ -5,7 +5,7 @@ PHP caching tool for generating flat view files.  Serve static files as much as 
 
 Usage:
 
-[code]
+<pre>
 include "cache.php";
 
 use \ViewCache\FileExpirationCachePolicy as CachePolicy1;
@@ -38,4 +38,4 @@ if($page_content == null) {
 }
 
 echo $page_content;
-[/code]
+</pre>
