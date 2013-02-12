@@ -10,7 +10,9 @@ Place this in your index.php or wherever your application root is.  This was tes
 ```php
 include "cache.php";
 
+//for gzip support, change this to GzipFileRepository
 use \ViewCache\FileRepository as Repository;
+//for gzip support, change this to GzipBufferedCache
 use \ViewCache\BufferedCache as Cache;
 use \ViewCache\FileExpirationCachePolicy as CachePolicy1;
 use \ViewCache\HttpMethodCachePolicy as CachePolicy2;
@@ -41,7 +43,7 @@ if($page_contents == null) {
     your PHP application starting point here
   */
   
-  $page_contents = $cache->bufferGetEnd($key);
+  $page_contents = $vcache->bufferGet($key);
 }
 
 echo $page_contents;
