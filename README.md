@@ -1,8 +1,7 @@
 php-vcache
 ==========
 
-Generic light weight PHP caching tool for generating flat view files. For generating and serving static HTML documents (with gzip compression). Perfect for high traffic blogging websites or for websites that don't have to serve constantly updating or time critical content.
-
+Generic light weight PHP page caching tool for generating and serving static HTML documents (with gzip compression). Perfect for high traffic blogging websites or for websites that don't have to serve constantly updating or time critical content.
 ## Usage:
 
 Place this in your index.php or wherever your application root is.  This was tested with wordpress by entering this code in the index.php file and substituting the commented section below (/*your PHP application starting point here*/) with the original wordpress index.php code.
