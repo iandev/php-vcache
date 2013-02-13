@@ -186,9 +186,9 @@ class GzipFileRepository extends CompressedFileRepository {
 
     function decompress($value) {
         if(function_exists("gzdecode"))
-            $value = gzdecode($out);
+            $value = gzdecode($value);
         else if(function_exists("gzinflate"))
-            $value = gzinflate(substr($out,10,-8));
+            $value = gzinflate(substr($value,10,-8));
         else
             throw new \Exception("Browser does not support gzip compression and cannot successfully decode/inflate ouput because neither gzdecode or gzinflate are available.");
 
@@ -309,7 +309,7 @@ class BufferedCache extends Cache implements IBuffer {
     public function capture($key, $callback) {
         $this->bufferStart();
         $callback();
-        return $this->bufferGetEnd($key);
+        return $this->bufferGet($key);
     }
 }
 
