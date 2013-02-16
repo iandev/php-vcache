@@ -181,7 +181,15 @@ class GzipFileRepository extends CompressedFileRepository {
     }
     
     function compress($value) {
-        return gzencode($value);
+        $accept = explode(",", $_SERVER["HTTP_ACCEPT_ENCODING"]);
+        
+        if(in_array("gzip", $accept) && function_exists("gzencode")) {
+            $value = gzencode($value);
+        } //else {
+            //throw new \Exception("Cannot gzip because gzencode is not available.");
+        //}
+        
+        return $value;
     }
 
     function decompress($value) {
@@ -196,11 +204,7 @@ class GzipFileRepository extends CompressedFileRepository {
     }
 
     function create($key, $value) {
-        if(function_exists("gzencode")) {
-            $value = $this->compress($value);
-        } else {
-            throw new \Exception("Cannot gzip because gzencode is not available.");
-        }
+        $value = $this->compress($value);
         parent::create($key, $value);
     }
 
@@ -216,7 +220,7 @@ class GzipFileRepository extends CompressedFileRepository {
                 header('Vary: Accept-Encoding');
             }
         } else {
-            $value = $this->decompress($value);
+            //$value = $this->decompress($value);
         }
 
         return $value;
