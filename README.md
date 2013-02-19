@@ -38,7 +38,7 @@ $cache = new Cache(
 );
 
 $page_contents = $cache->get($key);
-if($page_contents == null) {
+if($page_contents == null || empty($page_contents)) {
   $cache->bufferStart();
   
   /*
