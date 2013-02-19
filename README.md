@@ -15,6 +15,7 @@ use \ViewCache\BufferedCache as Cache;
 use \ViewCache\FileExpirationCachePolicy as CachePolicy1;
 use \ViewCache\HttpMethodCachePolicy as CachePolicy2;
 use \ViewCache\UriRegexCachePolicy as CachePolicy3;
+use \ViewCache\FileLogger as Logger;
 
 $key = $_SERVER["REQUEST_URI"];
 $expiration_seconds = 30;
@@ -30,7 +31,8 @@ $cache = new Cache(
     //only cache pages that match the request uri
     new CachePolicy3(array("/p=1/", "/p=2/"))
   ), 
-  $repository
+  $repository,
+  new Logger("vcache-error.log")
 );
 
 $page_contents = $cache->get($key);
