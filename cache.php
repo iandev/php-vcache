@@ -268,12 +268,10 @@ class Cache implements ICache {
     }
 
     public function set($key, $value) {
-        $e = $this->repository->exists($key);
-
         if (!$this->check()) return false;
 
         //does key exists in repo? do an update, else do an add
-        if($e)
+        if($this->repository->exists($key))
             $this->repository->update($key, $value);
         else
             $this->repository->create($key, $value);
