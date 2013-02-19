@@ -46,12 +46,20 @@ final class LogType {
 
 class FileLogger implements ILogger {
     private $logfile;
+    static $instance;
 
-    public function __construct($file) {
+    private function __construct($file) {
         if (is_writable($file))
             $this->logfile = $file;
         else
             $this->logfile = null;
+    }
+
+    public static function instance($file = "vcache-error.log") {
+        if (self::$instance == null)
+            self::$instance = new FileLogger($file);
+
+        return self::$instance;
     }
 
     public function log($msg, $type) {
