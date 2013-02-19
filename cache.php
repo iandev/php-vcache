@@ -27,6 +27,7 @@ interface IBuffer {
     function bufferStart();
     function bufferEnd();
     function bufferGet($key);
+    function bufferSave($key);
     function capture($key, $callback);
 }
 
@@ -361,8 +362,17 @@ class BufferedCache extends Cache implements IBuffer {
 
     public function bufferGet($key) {
         $this->buffer = ob_get_contents();
-        $this->bufferEnd();
+        return $this->buffer;
+    }
+
+    public function bufferSave($key) {
         $this->set($key, $this->buffer);
+    }
+
+    public function bufferGetEndSave($key) {
+        $this->bufferGet($key);
+        $this->bufferEnd();
+        $this->bufferSave($key);
         return $this->buffer;
     }
 
