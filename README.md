@@ -16,11 +16,13 @@ use \ViewCache\FileExpirationCachePolicy as CachePolicy1;
 use \ViewCache\HttpMethodCachePolicy as CachePolicy2;
 use \ViewCache\UriRegexCachePolicy as CachePolicy3;
 use \ViewCache\FileLogger as Logger;
+use \ViewCache\LogType as LogType;
 
 $key = $_SERVER["REQUEST_URI"];
 $expiration_seconds = 30;
 $cache_dir = "cachedir";
 
+$logger = Logger::instance("vcache-error.log");
 $repository = new Repository($cache_dir);
 $cache = new Cache(
   array(
