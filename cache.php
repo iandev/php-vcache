@@ -27,6 +27,7 @@ interface IBuffer {
     function bufferStart();
     function bufferEnd();
     function bufferGet($key);
+    function bufferSave($key);
     function capture($key, $callback);
 }
 
@@ -241,7 +242,7 @@ class Cache implements ICache {
             if($this->check()) {
                 return $this->repository->read($key);
             } else {
-                $this->repository->delete($key);
+                $this->invalidate($key);
             }
         }
 
@@ -267,7 +268,7 @@ class Cache implements ICache {
         return $check;
     }
 
-    public function set($key, $value) {
+        public function set($key, $value) {
         if (!$this->check()) return false;
 
         //does key exists in repo? do an update, else do an add
@@ -303,8 +304,17 @@ class BufferedCache extends Cache implements IBuffer {
 
     public function bufferGet($key) {
         $this->buffer = ob_get_contents();
-        $this->bufferEnd();
+        return $this->buffer;
+    }
+
+    public function bufferSave($key) {
         $this->set($key, $this->buffer);
+    }
+
+    final public function bufferGetEndSave($key) {
+        $this->bufferGet($key);
+        $this->bufferEnd();
+        $this->bufferSave($key);
         return $this->buffer;
     }
 
