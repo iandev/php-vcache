@@ -43,7 +43,7 @@ if($page_contents == null) {
     your PHP application starting point here
   */
   
-  $page_contents = $vcache->bufferGet($key);
+  $page_contents = $vcache->bufferGetEndSave($key);
 }
 
 echo $page_contents;
