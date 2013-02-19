@@ -192,7 +192,7 @@ class FileRepository implements IResourceRepository {
     }
 
     function update($key, $value) {
-        $this->create($key, value);
+        $this->create($key, $value);
     }
 
     function delete($key) {
