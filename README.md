@@ -34,7 +34,7 @@ $cache = new Cache(
     new CachePolicy3(array("/p=1/", "/p=2/"))
   ), 
   $repository,
-  new Logger("vcache-error.log")
+  $logger
 );
 
 $page_contents = $cache->get($key);
