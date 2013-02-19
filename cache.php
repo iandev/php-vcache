@@ -19,7 +19,8 @@ interface IResourceRepository {
 interface ICache {
     function set($key, $value);
     function get($key);
-    function flush();
+    function invalidate($key);
+    function invalidateAll();
 }
 
 interface IBuffer {
@@ -87,7 +88,7 @@ class UriRegexCachePolicy implements ICachePolicy {
             $this->config = array();
             array_push($this->config, $tmp);
         }
-        
+
         foreach($this->config as $conf) {
             if(preg_match($conf, $_SERVER["REQUEST_URI"]))
                 return true;
@@ -158,7 +159,7 @@ class FileRepository implements IResourceRepository {
             unlink($path);
         }
     }
-    
+
     function deleteAll() {
         $files = scandir($this->repo_dir);
         $files = array_diff($files, array(".",".."));
@@ -179,16 +180,14 @@ class GzipFileRepository extends CompressedFileRepository {
     function __construct($dir) {
         parent::__construct($dir);
     }
-    
+
     function compress($value) {
         $accept = explode(",", $_SERVER["HTTP_ACCEPT_ENCODING"]);
-        
+
         if(in_array("gzip", $accept) && function_exists("gzencode")) {
             $value = gzencode($value);
-        } //else {
-            //throw new \Exception("Cannot gzip because gzencode is not available.");
-        //}
-        
+        }
+
         return $value;
     }
 
@@ -210,7 +209,6 @@ class GzipFileRepository extends CompressedFileRepository {
 
     function read($key) {
         $value = parent::read($key);
-
         $accept = explode(",", $_SERVER["HTTP_ACCEPT_ENCODING"]);
         if(in_array("gzip", $accept)) {
             if($value != null) {
@@ -219,8 +217,6 @@ class GzipFileRepository extends CompressedFileRepository {
                 header('Content-Length: ' . strlen($value));
                 header('Vary: Accept-Encoding');
             }
-        } else {
-            //$value = $this->decompress($value);
         }
 
         return $value;
@@ -231,60 +227,64 @@ class Cache implements ICache {
 
     private $repository;
     private $policy;
-    private $flushed;
 
     function __construct($cache_policy, IResourceRepository $resource_repository) {
         $this->repository = $resource_repository;
         $this->policy = $cache_policy;
-        $this->flushed = false;
     }
 
     public function get($key) {
         //is key in repository? then send it through policy
         //policy says its expired? delete it otherwise get it
         if($this->repository->exists($key)) {
-            $val = $this->repository->read($key);
-            if(strlen($val) > 0) {
-                $check = true;
 
-                if(is_array($this->policy)) {
-                    foreach($this->policy as $policy) {
-                        if(!$policy->check()) {
-                            $check = false;
-                            break;
-                        }
-                    }
-                } else {
-                    if(!$this->policy->check()) {
-                        $check = false;
-                    }
-                }
-
-                if($check || $this->flushed) {
-                    return $val;
-                } else {
-                    $this->repository->delete($key);
-                    $this->flushed = true;
-                }
+            if($this->check()) {
+                return $this->repository->read($key);
+            } else {
+                $this->repository->delete($key);
             }
-        } else {
-            $this->flushed = true;
         }
 
         return null;
     }
 
+    public function check() {
+        $check = true;
+
+        if(is_array($this->policy)) {
+            foreach($this->policy as $policy) {
+                if(!$policy->check()) {
+                    $check = false;
+                    break;
+                }
+            }
+        } else {
+            if(!$this->policy->check()) {
+                $check = false;
+            }
+        }
+
+        return $check;
+    }
+
     public function set($key, $value) {
+        $e = $this->repository->exists($key);
+
+        if (!$this->check()) return false;
+
         //does key exists in repo? do an update, else do an add
-        if($this->repository->exists($key))
+        if($e)
             $this->repository->update($key, $value);
         else
             $this->repository->create($key, $value);
     }
-    
-    public function flush() {
+
+    public function invalidate($key) {
+        $this->repository->delete($key);
+    }
+
+    public function invalidateAll() {
         $this->repository->deleteAll();
-        $this->flushed = true;
     }
 }
 
@@ -307,7 +307,7 @@ class BufferedCache extends Cache implements IBuffer {
         $this->buffer = ob_get_contents();
         $this->bufferEnd();
         $this->set($key, $this->buffer);
-        return $this->get($key);
+        return $this->buffer;
     }
 
     public function capture($key, $callback) {
